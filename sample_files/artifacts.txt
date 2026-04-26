@@ -6,3 +6,14 @@ Steps:
 - updating package.json on react side 
 - settign up react part for rendering
 - set up app.jsx for css with bootstrap
+
+
+Commit 2: 
+Prompt: 
+- now, lets write rspec only for creating the country migration. it shoud have name, and code and both as string, make the indexes proper.
+- both can be made in single line right
+Steps:
+- RSpec are written for migration file to check db_names
+- RSpec are written for validations
+- Setting up RSpec
+- making sure to create a model to pass all the tests
