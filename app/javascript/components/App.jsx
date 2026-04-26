@@ -1,36 +1,34 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
+import Sidebar from "./Layout/Sidebar";
+import Header from "./Layout/Header";
+import Dashboard from "./Dashboard";
 
 export default function App() {
-  const [count, setCount] = useState(0)
+  const [activeView, setActiveView] = useState("dashboard");
+  const [globalSearch, setGlobalSearch] = useState("");
+
+  function renderContent() {
+    switch (activeView) {
+      case "dashboard":
+        return <Dashboard />;
+      default:
+        return <Dashboard />;
+    }
+  }
 
   return (
-    <div className="container mt-5">
-      <div className="row">
-        <div className="col-md-12">
-          <h1>Salary Management System</h1>
-          <p className="lead">Welcome to your React-powered application!</p>
-
-          <div className="card">
-            <div className="card-body">
-              <h5 className="card-title">Counter Example</h5>
-              <p className="card-text">This is a simple React component running on Rails.</p>
-              <p>Count: <strong>{count}</strong></p>
-              <button
-                className="btn btn-primary me-2"
-                onClick={() => setCount(count + 1)}
-              >
-                Increment
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setCount(0)}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
+    <div className="app-layout">
+      <Sidebar activeView={activeView} onNavigate={setActiveView} />
+      <div className="main-content">
+        <Header
+          globalSearch={globalSearch}
+          onGlobalSearchChange={setGlobalSearch}
+        />
+        <div className="page-content">
+          {renderContent()}
         </div>
       </div>
     </div>
-  )
+  );
 }
+

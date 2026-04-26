@@ -17,3 +17,13 @@ Steps:
 - RSpec are written for validations
 - Setting up RSpec
 - making sure to create a model to pass all the tests
+
+
+commit 3: 
+Prompt:
+- now lets create a simple admin panel on react side? and set up jest. without any api's, just a plain admin panel. with title Salary management
+Steps:
+- Jest has been set up
+- Admin Panel has been created with empty and only dummy for now
+
+
