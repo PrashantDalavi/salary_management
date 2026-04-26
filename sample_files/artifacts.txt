@@ -1,0 +1,8 @@
+Commit 1: 
+Prompt: Can you add rspec to this gem file and set up react part like when i run bin/dev then rendering should happen from react and not from rails.. i mean add testing framework gems along wth binding.pry to this gem file
+Steps: 
+- Setting up database
+- adding testing gems to gemfile
+- updating package.json on react side 
+- settign up react part for rendering
+- set up app.jsx for css with bootstrap

@@ -1,0 +1,84 @@
+These are the steps that will be followed for implementation of Salary Management.
+the detailed steps are written down into artifacts.txt file explainign each commit with prompt used.
+
+1. Need to create a rails app in rails 7 along with inbuilt react app using jsbuilder.
+2. set up database and gemfile for required TDD approach.
+3. Set up react that goes hand in hand with rails app and things render from react and not from rails 		when bin/dev is triggered.
+4. set up testing part on react app for TDD approach.
+5. implementation starts from here.
+6. create a country table(migration) with proper indexes.
+7. Writing specs for model and the required association.
+8. make them fail, create a model and associations and make them pass.
+9. write rspec for api controller for crud operation one by one for country.
+10. make them fail and write the controller and make them pass.
+11. Write jest tests and make them fail for admin panel
+12. create simple UI like admin panel for country and make the test pass and refactor.
+13. I would write migration for creating department next.
+14. write rspec for associations and make them fail.
+15. create a department model and create associations and make the tests pass.
+16. write rspec for crud operations on department and make them fail.
+17. create crud operations and make the tests pass.
+18. write jest for simple UI for department and make it fail.
+19. create UI for department and make the tests pass.
+20. I would write migration for creating employee next.
+21. write rspec for associations and make them fail.
+22. create a employee model and create associations and make the tests pass.
+23. write rspec for crud operations on employee and make them fail.
+24. create crud operations and make the tests pass.
+25. write jest for simple UI for employee and make it fail.
+26. create UI for employee and make the tests pass.
+27. write rspec for basic search functionality on country, for name and code.
+28. make the tests fail.
+29. implement the search functionlaity and make tests pass.
+30. writing basic jest for search functionality on country and making it fail.
+31. make the functionality along with UI and make it pass.
+32. write rspec for basic search functionality on department, for name and code.
+33. make the tests fail.
+34. implement the search functionlaity and make tests pass.
+35. writing basic jest for search functionality on department and making it fail.
+36. make the functionality along with UI and make it pass.
+Employee: This is a complex part.
+37. writing rspec for multi search functionlity and making them fail.
+38. create a multi search functionality and make it pass.
+39. jest test cases for multi search UI.
+40. create the UI and make it pass and refactor.
+41. rspec for sorting on rails side and making it fail.
+42. implement sorting on employee admin panel and make the test pass.
+43. jest for sorting on react end and make it fail.
+44. create the sort and accept the data incoming and make the test pass.
+45. Rspec for salary insights and make them fail.
+46. writing the code for every query, i.e., for every requirement and making the tests pass one by one.
+47. creating jest tests for react and making them fail.
+48. create the employee insights and make the tests pass.
+49. Rspec for seed file rake tasks for creating 10,000 employees
+50. make the tests pass by writing the code and taking good care of optimization.
+51. Rspec for CSV import on country and making it fail.
+52. create the functionality and make it pass.
+53. Rspec for CSV import on Department and making it fail.
+54. create the functionality and make it pass.
+55. Rspec for CSV import on Employee and making it fail.
+56. create the functionality and make it pass.
+57. Once everything is ready, I shall dockerize the whole app.
+58. setting up everythin on render.com
+59. Hosting the app and getting the live url.
+
+For simplicity and easy access and document segregation, all files are saved in sample files.
+including first_name.txt, last_name.txt, country.csv, department.csv, employee.csv files
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
