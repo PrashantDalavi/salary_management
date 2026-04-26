@@ -34,5 +34,14 @@ Steps:
 - creating CRUD operations in controller.
 - Setting up the routes
 
+Commit 5:
+Prompt: 
+- Now we have all API Ready for country. Can you create a Jest test cases for countries crud operations and also index and show actions. make sure there is a pagination as well and if needed we can go for kaminari gem in rails for pagination. so we need a tab with Countries and listing page. but before that we need jest test cases
+- now lets go for implementation? like react implementation with existing country existing end points? we need create, show, update, delete and also we need jest test cases for the same and also index page with pagination. if pagination does not support then lets go for kaminari gem but we need ass rspec for the same.
+Steps:
+- created jest cases and created the default country section on the react part.
+- Consumed country end points along with rspec test cases.
+- used kaminari for pagination on server side.
+- updated rails side with rspec.
 
 

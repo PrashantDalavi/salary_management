@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "./Layout/Sidebar";
 import Header from "./Layout/Header";
 import Dashboard from "./Dashboard";
+import CountriesList from "./Countries/CountriesList";
 
 export default function App() {
   const [activeView, setActiveView] = useState("dashboard");
@@ -11,6 +12,8 @@ export default function App() {
     switch (activeView) {
       case "dashboard":
         return <Dashboard />;
+      case "countries":
+        return <CountriesList globalSearch={globalSearch} />;
       default:
         return <Dashboard />;
     }
@@ -31,4 +34,3 @@ export default function App() {
     </div>
   );
 }
-

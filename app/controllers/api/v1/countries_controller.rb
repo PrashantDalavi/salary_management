@@ -4,8 +4,22 @@ module Api
       before_action :set_country, only: [ :show, :update, :destroy ]
 
       def index
-        countries = Country.order(:id)
-        render json: countries, status: :ok
+        page = params[:page].to_i
+        per_page = params[:per_page].to_i
+        page = 1 if page <= 0
+        per_page = 10 if per_page <= 0
+
+        countries = Country.order(:id).page(page).per(per_page)
+
+        render json: {
+          countries: countries,
+          pagination: {
+            current_page: countries.current_page,
+            per_page: countries.limit_value,
+            total_count: countries.total_count,
+            total_pages: countries.total_pages
+          }
+        }, status: :ok
       end
 
       def show
@@ -14,6 +28,7 @@ module Api
 
       def create
         country = Country.new(country_params)
+
         if country.save
           render json: country, status: :created
         else

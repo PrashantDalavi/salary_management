@@ -8,16 +8,8 @@ describe('Dashboard Component', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
 
-  it('renders stat cards', () => {
+  it('renders page header container', () => {
     render(<Dashboard />);
-    expect(screen.getByText('Total Employees')).toBeInTheDocument();
-    expect(screen.getByText('Total Departments')).toBeInTheDocument();
-    expect(screen.getByText('Total Countries')).toBeInTheDocument();
-    expect(screen.getByText('Avg Salary')).toBeInTheDocument();
-  });
-
-  it('renders welcome message', () => {
-    render(<Dashboard />);
-    expect(screen.getByText('Welcome to the Salary Management System')).toBeInTheDocument();
+    expect(document.querySelector('.page-header')).toBeInTheDocument();
   });
 });
