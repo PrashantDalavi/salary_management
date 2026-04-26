@@ -26,4 +26,13 @@ Steps:
 - Jest has been set up
 - Admin Panel has been created with empty and only dummy for now
 
+commit 4:
+Prompt:
+- now lets write rspec for country Crud operations, like create, read, update and delete and also index page and show page..these should be api's ok.
+Steps: 
+- RSpec for the CRUD operations and along with messages.
+- creating CRUD operations in controller.
+- Setting up the routes
+
+
 
