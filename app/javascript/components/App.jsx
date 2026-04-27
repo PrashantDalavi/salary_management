@@ -3,6 +3,7 @@ import Sidebar from "./Layout/Sidebar";
 import Header from "./Layout/Header";
 import CountriesList from "./Countries/CountriesList";
 import DepartmentsList from "./Departments/DepartmentsList";
+import InsightsDashboard from "./Insights/InsightsDashboard";
 import EmployeesList from "./Employees/EmployeesList";
 
 export default function App() {
@@ -15,6 +16,8 @@ export default function App() {
         return <CountriesList globalSearch={globalSearch} />;
       case "departments":
         return <DepartmentsList />;
+      case "insights":
+        return <InsightsDashboard />;
       case "employees":
         return <EmployeesList />;
       default:

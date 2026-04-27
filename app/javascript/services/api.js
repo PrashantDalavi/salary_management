@@ -149,3 +149,9 @@ export async function bulkImportEmployees(file) {
   if (!response.ok) throw new Error(data.errors?.join(", ") || "Import failed");
   return data;
 }
+
+export async function fetchSalaryInsights({ countryId = "" } = {}) {
+  const params = new URLSearchParams();
+  if (countryId) params.append("country_id", countryId);
+  return request(`/salary_insights?${params}`);
+}

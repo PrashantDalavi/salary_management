@@ -231,5 +231,26 @@ Save this file in sample_files and name of the file should be bulk_employees.csv
 steps:
 - Created a csv file for employee with 10000 records.
 
+commit 24:
+prompt: 
+- lets start implementing the bulk import functionality for employee  along with rspec for the same.    
+steps:
+- Created rspec for employee bulk import functionality.
+- Implemented the bulk import functionality on the rails end point.
+- Implemented the bulk import functionality on the react side.
+- Created end point for bulk import on the rails side with rspec for the same.
+- Updated the service file for bulk import functionality.
+- Updated the jest test cases for bulk import functionality.
+- Updated the react component for bulk import functionality.
+
+commit 25:
+Prompt:
+- Can you build a new 'Salary Insights' page? I need a Rails backend endpoint that calculates overall statistics (total employees, min/max/average salary) and breaks down employee counts and average salaries grouped by Country and Job Title. Then, build a React frontend dashboard to display this data in beautiful metric cards and sortable tables, and include a filter for countries. Make sure to include full RSpec tests for the backend aggregations and Jest tests for the React component.
+Steps:
+- Implemented `InsightsController` on the Rails backend to execute complex SQL aggregations and grouping.
+- Created RSpec request specs to test the salary insights aggregations and country filtering logic.
+- Built a new `InsightsDashboard` React component with metric cards and sortable data tables.
+- Integrated the new dashboard into the `App.jsx` router and `Sidebar.jsx` navigation.
+- Created comprehensive Jest tests using React Testing Library to verify the dashboard rendering and filter interactions.
 
 
