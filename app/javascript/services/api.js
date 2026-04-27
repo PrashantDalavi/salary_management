@@ -63,3 +63,28 @@ export async function bulkImportCountries(file) {
   if (!response.ok) throw new Error(data.errors?.join(", ") || "Import failed");
   return data;
 }
+
+// --- DEPARTMENTS ---
+
+export async function fetchDepartments({ page = 1, perPage = 10 } = {}) {
+  const params = new URLSearchParams({ page, per_page: perPage });
+  return request(`/departments?${params}`);
+}
+
+export async function createDepartment(departmentData) {
+  return request("/departments", {
+    method: "POST",
+    body: JSON.stringify({ department: departmentData }),
+  });
+}
+
+export async function updateDepartment(id, departmentData) {
+  return request(`/departments/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ department: departmentData }),
+  });
+}
+
+export async function deleteDepartment(id) {
+  return request(`/departments/${id}`, { method: "DELETE" });
+}

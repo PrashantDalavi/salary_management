@@ -120,5 +120,15 @@ steps:
 -  Created controller for department end points.
 -  Rspec for the routes have been updated
 
+commit 13:
+Prompt:
+- can we have a front end part now for the department section?
+like i need it with test cases and it should replicate country like section where we have pagination, listing pag, edit, and show.. 
+no search for now but just a listing page, we need to consume api on react side for all crud operations on department
+steps:
+- Created jest test cases for department management.
+- Created department management page with CRUD operations and pagination on react side.
+- Created a navigation item for department management in the admin panel.
+- Created a create and edit form for department management, which will allow us to create and update the department.
 
 

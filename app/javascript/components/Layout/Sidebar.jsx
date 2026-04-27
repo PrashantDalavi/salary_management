@@ -3,6 +3,7 @@ import React from "react";
 export default function Sidebar({ activeView, onNavigate }) {
   const navItems = [
     { key: "countries", label: "Countries", icon: "🌍", badge: null },
+    { key: "departments", label: "Departments", icon: "🏢", badge: null },
   ];
 
   return (

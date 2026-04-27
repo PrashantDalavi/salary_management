@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "./Layout/Sidebar";
 import Header from "./Layout/Header";
 import CountriesList from "./Countries/CountriesList";
+import DepartmentsList from "./Departments/DepartmentsList";
 
 export default function App() {
   const [activeView, setActiveView] = useState("countries");
@@ -11,6 +12,8 @@ export default function App() {
     switch (activeView) {
       case "countries":
         return <CountriesList globalSearch={globalSearch} />;
+      case "departments":
+        return <DepartmentsList />;
       default:
         return <CountriesList globalSearch={globalSearch} />;
     }
