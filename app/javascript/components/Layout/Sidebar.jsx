@@ -4,6 +4,7 @@ export default function Sidebar({ activeView, onNavigate }) {
   const navItems = [
     { key: "countries", label: "Countries", icon: "🌍", badge: null },
     { key: "departments", label: "Departments", icon: "🏢", badge: null },
+    { key: "employees", label: "Employees", icon: "👤", badge: null },
   ];
 
   return (

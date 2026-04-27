@@ -192,6 +192,15 @@ steps:
 - Created rspec for employee migration functionality.
 - Created employee migration functionality.
 
-
-
+commit 20:
+Prompt: 
+- now, i need a blank admin panel for employee section, the column should be first name, last name, email, code, department, country, salary, and job title.. and also a button for csv import, edit and delete  and add new button, along with jest test cases.
+keep it all empty and we need to created a layout in react
+- we hve pagination error for jest 
+steps:
+- Created jest test cases for employee management functionality.
+- Created employee management page on the react side.
+- Created a navigation item for employee management in the admin panel.
+- Created a create and edit form for employee management, which will allow us to create and update the employee.
+- fixed pagination error for jest 
 

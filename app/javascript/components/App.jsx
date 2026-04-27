@@ -3,6 +3,7 @@ import Sidebar from "./Layout/Sidebar";
 import Header from "./Layout/Header";
 import CountriesList from "./Countries/CountriesList";
 import DepartmentsList from "./Departments/DepartmentsList";
+import EmployeesList from "./Employees/EmployeesList";
 
 export default function App() {
   const [activeView, setActiveView] = useState("countries");
@@ -14,6 +15,8 @@ export default function App() {
         return <CountriesList globalSearch={globalSearch} />;
       case "departments":
         return <DepartmentsList />;
+      case "employees":
+        return <EmployeesList />;
       default:
         return <CountriesList globalSearch={globalSearch} />;
     }
