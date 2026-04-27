@@ -83,5 +83,31 @@ Steps:
 - Created controller end point for country import functionality.
 - Created a function to handle the csv import functionality.
 - created react service end point to handle the csv import functionality. 
-- implemented pagination on the react side for country management.  
+- implemented pagination on the react side for country management. 
+
+commit 10: 
+Prompt:
+- ok now, lets have a basic search functionality for country.
+- lets create test cases for react and write a search functionality for the same
+- write test cases for rails and write the functionality for the smae.
+- make sure the search functionality is integrated in the model inside the class method and not as a scope. the request should flow from end point from controller and the logic happens in the model method.
+and i need test cases for both front end and back end. 
+search should be for name and code and try using i like
+steps:
+- Jest test cases for country search functionality has been written.
+- backend RSpec test cases has been written.
+- Created a controller end point for country search functionality.
+- implemented the country search functionality on the react side.
+- Created a search input field on the react side for country management.
+
+commit 11: 
+prompt: 
+- lets create a migration for department, i mean the db table and db column names are name, code and country id  make the indexes proper write tests cases for the same in rails  it is just the migration and nothing else.
+steps:
+steps:
+- Rspec for migration has been written.
+- Migration has been created.
+- model has been created with validation and associations.
+- Rspec test cases for model validations has been written.
+
 
