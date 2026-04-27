@@ -253,4 +253,21 @@ Steps:
 - Integrated the new dashboard into the `App.jsx` router and `Sidebar.jsx` navigation.
 - Created comprehensive Jest tests using React Testing Library to verify the dashboard rendering and filter interactions.
 
+commit 26:
+Prompt:
+Please create 2 files and save them in sample_files, 
+the name of the first file should be first_name.txt and the second file should be last_name.txt. and in each file put 100 names. (just names nothing else), because when we create employees, we will use this files to generate random names for 10000 employees.  
+steps:
+- Created 2 files with 100 names each in sample_files.
+
+commit 27:
+Prompt: 
+Please write a highly performant `db/seeds.rb` script to randomly generate 10,000 employees. Use the `first_names.txt` and `last_names.txt` files for their names, and use Rails `insert_all` to bulk-insert the records so the script runs in seconds instead of minutes.
+steps: 
+- Wrote `db/seeds.rb` to generate 10,000 employees using the provided text files.
+- Optimized performance using `insert_all` to execute bulk SQL inserts in batches.
+- Pre-loaded related Country and Department IDs into memory to completely eliminate N+1 queries.
+
+
+
 
