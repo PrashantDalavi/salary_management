@@ -181,4 +181,69 @@ RSpec.describe "Api::V1::Departments", type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "POST /api/v1/departments/bulk_import" do
+    before do
+      create(:country, name: "Germany", code: "DE")
+    end
+
+    def upload_csv(content)
+      tempfile = Tempfile.new(["departments", ".csv"])
+      tempfile.write(content)
+      tempfile.rewind
+      Rack::Test::UploadedFile.new(tempfile.path, "text/csv", false, original_filename: "departments.csv")
+    end
+
+    it "imports departments from a CSV file" do
+      file = upload_csv("name,code,country_code\nEngineering,ENG,IN\nMarketing,MKT,DE\n")
+      expect {
+        post "/api/v1/departments/bulk_import", params: { file: file }
+      }.to change(Department, :count).by(2)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import completed")
+      expect(json["imported"]).to eq(2)
+      expect(json["updated"]).to eq(0)
+      expect(json["skipped"]).to eq(0)
+    end
+
+    it "updates existing departments with changed codes" do
+      create(:department, name: "Engineering", code: "OLD", country: country)
+      file = upload_csv("name,code,country_code\nEngineering,ENG,IN\n")
+      expect {
+        post "/api/v1/departments/bulk_import", params: { file: file }
+      }.not_to change(Department, :count)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["updated"]).to eq(1)
+      expect(Department.find_by(name: "Engineering", country: country).code).to eq("ENG")
+    end
+
+    it "reports error for invalid country code" do
+      file = upload_csv("name,code,country_code\nEngineering,ENG,XX\n")
+      post "/api/v1/departments/bulk_import", params: { file: file }
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to include(match(/Country with code 'XX' not found/))
+    end
+
+    it "returns error when no file is provided" do
+      post "/api/v1/departments/bulk_import"
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import failed")
+    end
+
+    it "rejects files with invalid extensions" do
+      tempfile = Tempfile.new(["departments", ".txt"])
+      tempfile.write("name,code,country_code\nEngineering,ENG,IN\n")
+      tempfile.rewind
+      file = Rack::Test::UploadedFile.new(tempfile.path, "text/plain", false, original_filename: "departments.txt")
+      post "/api/v1/departments/bulk_import", params: { file: file }
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import failed")
+      expect(json["errors"]).to include(match(/Invalid file format/))
+    end
+  end
 end

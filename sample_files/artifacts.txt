@@ -147,4 +147,14 @@ steps:
 - Created a navigation item for department csv import functionality in the admin panel.
 
 
+commit 16:
+Prompt:
+- now lets make the csv import functionality to work with rails db. mean when i click on import button it should send the file to rails end point which should import the countries. and when it fails it should display the error message, i mean we need to test the functionality with real data on db. and we should see the countries in the listing page after import, along with pagination.
+- write rspec for the same and create end points
+steps:
+- created rspec for department csv import functionality.
+- created department csv import functionality on the rails end point.
+- created service class for department csv import functionality.
+
+
 
