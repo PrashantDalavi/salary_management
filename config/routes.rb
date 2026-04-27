@@ -20,6 +20,7 @@ Rails.application.routes.draw do
           post :bulk_import
         end
       end
+      resources :employees, only: [ :index, :show, :create, :update, :destroy ]
     end
   end
 end

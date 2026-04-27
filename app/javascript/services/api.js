@@ -106,3 +106,28 @@ export async function bulkImportDepartments(file) {
   if (!response.ok) throw new Error(data.errors?.join(", ") || "Import failed");
   return data;
 }
+
+// --- EMPLOYEES ---
+
+export async function fetchEmployees({ page = 1, perPage = 10 } = {}) {
+  const params = new URLSearchParams({ page, per_page: perPage });
+  return request(`/employees?${params}`);
+}
+
+export async function createEmployee(employeeData) {
+  return request("/employees", {
+    method: "POST",
+    body: JSON.stringify({ employee: employeeData }),
+  });
+}
+
+export async function updateEmployee(id, employeeData) {
+  return request(`/employees/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ employee: employeeData }),
+  });
+}
+
+export async function deleteEmployee(id) {
+  return request(`/employees/${id}`, { method: "DELETE" });
+}
