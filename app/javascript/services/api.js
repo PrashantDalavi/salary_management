@@ -131,3 +131,21 @@ export async function updateEmployee(id, employeeData) {
 export async function deleteEmployee(id) {
   return request(`/employees/${id}`, { method: "DELETE" });
 }
+
+export async function bulkImportEmployees(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  const response = await fetch(`${API_BASE}/employees/bulk_import`, {
+    method: "POST",
+    headers: {
+      "X-CSRF-Token": csrfToken,
+    },
+    body: formData,
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.errors?.join(", ") || "Import failed");
+  return data;
+}

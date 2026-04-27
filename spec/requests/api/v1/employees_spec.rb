@@ -141,4 +141,74 @@ RSpec.describe "Api::V1::Employees", type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  describe "POST /api/v1/employees/bulk_import" do
+    before do
+      create(:country, name: "Germany", code: "DE")
+    end
+
+    def upload_csv(content)
+      tempfile = Tempfile.new(["employees", ".csv"])
+      tempfile.write(content)
+      tempfile.rewind
+      Rack::Test::UploadedFile.new(tempfile.path, "text/csv", false, original_filename: "employees.csv")
+    end
+
+    it "imports employees from a CSV file" do
+      csv = "first_name,last_name,email,job_title,salary,hire_date,country_code,department_code\n"
+      csv += "Alice,Smith,alice@import.com,Engineer,80000,2024-01-15,IN,ENG\n"
+      csv += "Bob,Jones,bob@import.com,Designer,70000,2024-03-01,IN,ENG\n"
+      file = upload_csv(csv)
+      expect {
+        post "/api/v1/employees/bulk_import", params: { file: file }
+      }.to change(Employee, :count).by(2)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import completed")
+      expect(json["imported"]).to eq(2)
+    end
+
+    it "updates existing employees on re-import" do
+      create(:employee, email: "alice@import.com", first_name: "Alice", last_name: "Smith",
+             job_title: "Junior", salary: 50000, hire_date: "2024-01-15",
+             department: department, country: country)
+      csv = "first_name,last_name,email,job_title,salary,hire_date,country_code,department_code\n"
+      csv += "Alice,Smith,alice@import.com,Senior Engineer,90000,2024-01-15,IN,ENG\n"
+      file = upload_csv(csv)
+      expect {
+        post "/api/v1/employees/bulk_import", params: { file: file }
+      }.not_to change(Employee, :count)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["updated"]).to eq(1)
+      expect(Employee.find_by(email: "alice@import.com").job_title).to eq("Senior Engineer")
+    end
+
+    it "reports error for unknown country code" do
+      csv = "first_name,last_name,email,job_title,salary,hire_date,country_code,department_code\n"
+      csv += "Alice,Smith,alice@import.com,Engineer,80000,2024-01-15,XX,ENG\n"
+      file = upload_csv(csv)
+      post "/api/v1/employees/bulk_import", params: { file: file }
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to include(match(/Country 'XX' not found/))
+    end
+
+    it "returns error when no file is provided" do
+      post "/api/v1/employees/bulk_import"
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import failed")
+    end
+
+    it "rejects files with invalid extensions" do
+      tempfile = Tempfile.new(["employees", ".txt"])
+      tempfile.write("data")
+      tempfile.rewind
+      file = Rack::Test::UploadedFile.new(tempfile.path, "text/plain", false, original_filename: "employees.txt")
+      post "/api/v1/employees/bulk_import", params: { file: file }
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to include(match(/Invalid file format/))
+    end
+  end
 end

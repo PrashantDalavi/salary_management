@@ -7,7 +7,8 @@ import {
   updateEmployee,
   deleteEmployee,
   fetchDepartments,
-  fetchCountries
+  fetchCountries,
+  bulkImportEmployees
 } from "../../services/api";
 
 jest.mock("../../services/api", () => ({
@@ -16,7 +17,8 @@ jest.mock("../../services/api", () => ({
   updateEmployee: jest.fn(),
   deleteEmployee: jest.fn(),
   fetchDepartments: jest.fn(),
-  fetchCountries: jest.fn()
+  fetchCountries: jest.fn(),
+  bulkImportEmployees: jest.fn()
 }));
 
 const DEPARTMENTS_MOCK = {
@@ -147,5 +149,47 @@ describe("EmployeesList", () => {
     await waitFor(() => {
       expect(deleteEmployee).toHaveBeenCalledWith(1);
     });
+  });
+
+  it("imports a CSV file and shows success toast", async () => {
+    bulkImportEmployees.mockResolvedValueOnce({
+      message: "Import completed",
+      imported: 2,
+      updated: 1,
+      skipped: 0
+    });
+    
+    render(<EmployeesList />);
+    await screen.findByText("John");
+    
+    const file = new File(["dummy content"], "employees.csv", { type: "text/csv" });
+    const fileInput = document.querySelector('input[type="file"]');
+    
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    
+    await waitFor(() => {
+      expect(bulkImportEmployees).toHaveBeenCalledWith(file);
+    });
+    
+    expect(await screen.findByText("Import completed. Imported: 2, Updated: 1, Skipped: 0")).toBeInTheDocument();
+  });
+
+  it("shows an alert when import fails", async () => {
+    bulkImportEmployees.mockRejectedValueOnce(new Error("Invalid format"));
+    const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+    
+    render(<EmployeesList />);
+    await screen.findByText("John");
+    
+    const file = new File(["dummy content"], "employees.txt", { type: "text/plain" });
+    const fileInput = document.querySelector('input[type="file"]');
+    
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalledWith("Import error: Invalid format");
+    });
+    
+    alertMock.mockRestore();
   });
 });

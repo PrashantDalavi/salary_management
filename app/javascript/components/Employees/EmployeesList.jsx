@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, fetchDepartments, fetchCountries } from "../../services/api";
+import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, fetchDepartments, fetchCountries, bulkImportEmployees } from "../../services/api";
 import Modal from "../common/Modal";
 import Pagination from "../common/Pagination";
 
@@ -21,6 +21,7 @@ export default function EmployeesList() {
   });
   const [formErrors, setFormErrors] = useState([]);
   const [importing, setImporting] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -129,15 +130,21 @@ export default function EmployeesList() {
     setFormErrors([]);
   }
 
-  function handleImport(e) {
+  async function handleImport(e) {
     const file = e.target.files[0];
     if (!file) return;
     setImporting(true);
-    // TODO: call bulk import API
-    setTimeout(() => {
+    try {
+      const result = await bulkImportEmployees(file);
+      setToastMessage(`${result.message}. Imported: ${result.imported}, Updated: ${result.updated}, Skipped: ${result.skipped}`);
+      loadEmployees();
+    } catch (err) {
+      alert(`Import error: ${err.message}`);
+    } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
-    }, 500);
+      setTimeout(() => setToastMessage(null), 5000);
+    }
   }
 
   function handlePageChange(newPage) {
@@ -146,6 +153,11 @@ export default function EmployeesList() {
 
   return (
     <div>
+      {toastMessage && (
+        <div className="toast toast-success" style={{ marginBottom: "var(--space-md)", padding: "var(--space-sm)", backgroundColor: "#d4edda", color: "#155724", borderRadius: "var(--radius-md)" }}>
+          {toastMessage}
+        </div>
+      )}
       <div className="page-header">
         <div>
           <h2>Employees</h2>
