@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { fetchCountries, createCountry, updateCountry, deleteCountry, bulkImportCountries } from "../../services/api";
 import Modal from "../common/Modal";
+import Pagination from "../common/Pagination";
 
 export default function CountriesList({ globalSearch }) {
   const [countries, setCountries] = useState([]);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [sortBy, setSortBy] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
   const [showForm, setShowForm] = useState(false);
@@ -17,12 +22,16 @@ export default function CountriesList({ globalSearch }) {
 
   useEffect(() => {
     loadCountries();
-  }, []);
+  }, [page]);
 
   async function loadCountries() {
     try {
-      const data = await fetchCountries();
-      setCountries(data);
+      const data = await fetchCountries({ page, perPage });
+      setCountries(data.countries || []);
+      if (data.pagination) {
+        setTotalPages(data.pagination.total_pages);
+        setTotalCount(data.pagination.total_count);
+      }
     } catch {
       setCountries([]);
     }
@@ -116,6 +125,7 @@ export default function CountriesList({ globalSearch }) {
     try {
       const result = await bulkImportCountries(file);
       setImportResult(result);
+      setPage(1);
       loadCountries();
     } catch (err) {
       setImportResult({ message: err.message, imported: 0, skipped: 0 });
@@ -125,12 +135,16 @@ export default function CountriesList({ globalSearch }) {
     }
   }
 
+  function handlePageChange(newPage) {
+    setPage(newPage);
+  }
+
   return (
     <div>
       <div className="page-header">
         <div>
           <h2>Countries</h2>
-          <div className="page-header-subtitle">{filtered.length} countries</div>
+          <div className="page-header-subtitle">{totalCount} countries</div>
         </div>
         <div style={{ display: "flex", gap: "var(--space-sm)" }}>
           <input
@@ -200,6 +214,14 @@ export default function CountriesList({ globalSearch }) {
             )}
           </tbody>
         </table>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={totalCount}
+          perPage={perPage}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Add/Edit Modal */}

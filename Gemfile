@@ -20,6 +20,8 @@ gem "cssbundling-rails"
 gem "jbuilder"
 # Pagination
 gem "kaminari"
+# Spreadsheet parsing (CSV, Excel)
+gem "roo", "~> 2.10"
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 

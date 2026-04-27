@@ -17,29 +17,78 @@ jest.mock("../../services/api", () => ({
   bulkImportCountries: jest.fn(),
 }));
 
+const PAGE_1_RESPONSE = {
+  countries: [
+    { id: 1, name: "India", code: "IN" },
+    { id: 2, name: "Japan", code: "JP" },
+  ],
+  pagination: { current_page: 1, per_page: 10, total_count: 2, total_pages: 1 },
+};
+
+const MULTI_PAGE_RESPONSE_P1 = {
+  countries: [{ id: 1, name: "India", code: "IN" }],
+  pagination: { current_page: 1, per_page: 1, total_count: 3, total_pages: 3 },
+};
+
+const MULTI_PAGE_RESPONSE_P2 = {
+  countries: [{ id: 2, name: "Japan", code: "JP" }],
+  pagination: { current_page: 2, per_page: 1, total_count: 3, total_pages: 3 },
+};
+
 describe("CountriesList", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("renders country rows", async () => {
-    fetchCountries.mockResolvedValueOnce([
-      { id: 1, name: "India", code: "IN" },
-      { id: 2, name: "Japan", code: "JP" },
-    ]);
+  it("renders country rows with pagination info", async () => {
+    fetchCountries.mockResolvedValueOnce(PAGE_1_RESPONSE);
 
     render(<CountriesList globalSearch="" />);
 
     expect(await screen.findByText("India")).toBeInTheDocument();
     expect(screen.getByText("Japan")).toBeInTheDocument();
     expect(screen.getByText("2 countries")).toBeInTheDocument();
+    expect(screen.getByText(/Showing 1–2 of 2/)).toBeInTheDocument();
+  });
+
+  it("calls fetchCountries with page and perPage params", async () => {
+    fetchCountries.mockResolvedValueOnce(PAGE_1_RESPONSE);
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    expect(fetchCountries).toHaveBeenCalledWith({ page: 1, perPage: 10 });
+  });
+
+  it("navigates to next page when page button is clicked", async () => {
+    fetchCountries
+      .mockResolvedValueOnce(MULTI_PAGE_RESPONSE_P1)
+      .mockResolvedValueOnce(MULTI_PAGE_RESPONSE_P2);
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    fireEvent.click(screen.getByText("›"));
+
+    await waitFor(() => {
+      expect(fetchCountries).toHaveBeenCalledTimes(2);
+      expect(fetchCountries).toHaveBeenLastCalledWith({ page: 2, perPage: 10 });
+    });
+  });
+
+  it("disables previous button on first page", async () => {
+    fetchCountries.mockResolvedValueOnce(MULTI_PAGE_RESPONSE_P1);
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    const prevButtons = screen.getAllByText("‹");
+    expect(prevButtons[0]).toBeDisabled();
   });
 
   it("opens add modal and creates a country", async () => {
-    fetchCountries.mockResolvedValue([
-      { id: 1, name: "India", code: "IN" },
-    ]);
-    createCountry.mockResolvedValue({ id: 2, name: "Germany", code: "DE" });
+    fetchCountries.mockResolvedValue(PAGE_1_RESPONSE);
+    createCountry.mockResolvedValue({ id: 3, name: "Germany", code: "DE" });
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
@@ -62,15 +111,13 @@ describe("CountriesList", () => {
   });
 
   it("opens edit modal and updates a country", async () => {
-    fetchCountries.mockResolvedValue([
-      { id: 1, name: "India", code: "IN" },
-    ]);
+    fetchCountries.mockResolvedValue(PAGE_1_RESPONSE);
     updateCountry.mockResolvedValue({ id: 1, name: "Republic of India", code: "IN" });
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
 
-    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getAllByText("Edit")[0]);
 
     expect(screen.getByText("Edit Country")).toBeInTheDocument();
     expect(screen.getByDisplayValue("India")).toBeInTheDocument();
@@ -84,15 +131,13 @@ describe("CountriesList", () => {
   });
 
   it("opens delete confirmation and deletes a country", async () => {
-    fetchCountries.mockResolvedValue([
-      { id: 1, name: "India", code: "IN" },
-    ]);
+    fetchCountries.mockResolvedValue(PAGE_1_RESPONSE);
     deleteCountry.mockResolvedValue({});
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
 
-    fireEvent.click(screen.getByText("Delete"));
+    fireEvent.click(screen.getAllByText("Delete")[0]);
 
     expect(screen.getByText("Delete Country")).toBeInTheDocument();
     expect(screen.getByText(/Are you sure you want to delete/)).toBeInTheDocument();
@@ -105,10 +150,7 @@ describe("CountriesList", () => {
   });
 
   it("filters countries by global search", async () => {
-    fetchCountries.mockResolvedValueOnce([
-      { id: 1, name: "India", code: "IN" },
-      { id: 2, name: "Japan", code: "JP" },
-    ]);
+    fetchCountries.mockResolvedValueOnce(PAGE_1_RESPONSE);
 
     render(<CountriesList globalSearch="japan" />);
 
@@ -119,7 +161,10 @@ describe("CountriesList", () => {
   });
 
   it("shows empty state when no countries", async () => {
-    fetchCountries.mockResolvedValueOnce([]);
+    fetchCountries.mockResolvedValueOnce({
+      countries: [],
+      pagination: { current_page: 1, per_page: 10, total_count: 0, total_pages: 0 },
+    });
 
     render(<CountriesList globalSearch="" />);
 
@@ -127,9 +172,7 @@ describe("CountriesList", () => {
   });
 
   it("renders the Import CSV/Excel button", async () => {
-    fetchCountries.mockResolvedValueOnce([
-      { id: 1, name: "India", code: "IN" },
-    ]);
+    fetchCountries.mockResolvedValueOnce(PAGE_1_RESPONSE);
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
@@ -138,9 +181,7 @@ describe("CountriesList", () => {
   });
 
   it("triggers file input when Import button is clicked", async () => {
-    fetchCountries.mockResolvedValueOnce([
-      { id: 1, name: "India", code: "IN" },
-    ]);
+    fetchCountries.mockResolvedValueOnce(PAGE_1_RESPONSE);
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
@@ -155,9 +196,7 @@ describe("CountriesList", () => {
   });
 
   it("imports a CSV file and shows success result", async () => {
-    fetchCountries.mockResolvedValue([
-      { id: 1, name: "India", code: "IN" },
-    ]);
+    fetchCountries.mockResolvedValue(PAGE_1_RESPONSE);
     bulkImportCountries.mockResolvedValueOnce({
       message: "Import complete",
       imported: 3,
@@ -181,9 +220,7 @@ describe("CountriesList", () => {
   });
 
   it("shows error message when import fails", async () => {
-    fetchCountries.mockResolvedValue([
-      { id: 1, name: "India", code: "IN" },
-    ]);
+    fetchCountries.mockResolvedValue(PAGE_1_RESPONSE);
     bulkImportCountries.mockRejectedValueOnce(new Error("Invalid file format"));
 
     render(<CountriesList globalSearch="" />);
@@ -201,7 +238,10 @@ describe("CountriesList", () => {
   });
 
   it("accepts .csv, .xlsx, .xls file types", async () => {
-    fetchCountries.mockResolvedValueOnce([]);
+    fetchCountries.mockResolvedValueOnce({
+      countries: [],
+      pagination: { current_page: 1, per_page: 10, total_count: 0, total_pages: 0 },
+    });
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("No countries found");

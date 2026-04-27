@@ -22,9 +22,9 @@ async function request(path, options = {}) {
 
 // --- COUNTRIES ---
 
-export async function fetchCountries() {
-  const data = await request("/countries");
-  return data.countries;
+export async function fetchCountries({ page = 1, perPage = 10 } = {}) {
+  const params = new URLSearchParams({ page, per_page: perPage });
+  return request(`/countries?${params}`);
 }
 
 export async function createCountry(countryData) {

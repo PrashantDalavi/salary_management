@@ -1,2 +1,3 @@
 web: env RUBY_DEBUG_OPEN=true bin/rails server
 js: yarn build --watch
+css: while true; do cp app/assets/stylesheets/application.css app/assets/builds/application.css; sleep 2; done

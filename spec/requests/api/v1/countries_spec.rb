@@ -116,4 +116,109 @@ RSpec.describe "Api::V1::Countries", type: :request do
       expect(body["message"]).to eq("Australia has been deleted")
     end
   end
+
+  describe "POST /api/v1/countries/bulk_import" do
+    def upload_csv(content)
+      tempfile = Tempfile.new(["countries", ".csv"])
+      tempfile.write(content)
+      tempfile.rewind
+      Rack::Test::UploadedFile.new(tempfile.path, "text/csv", false, original_filename: "countries.csv")
+    end
+
+    it "imports countries from a CSV file" do
+      file = upload_csv("name,code\nIndia,IN\nJapan,JP\n")
+      expect {
+        post bulk_import_api_v1_countries_path, params: { file: file }
+      }.to change(Country, :count).by(2)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import completed")
+      expect(json["imported"]).to eq(2)
+      expect(json["updated"]).to eq(0)
+      expect(json["skipped"]).to eq(0)
+    end
+
+    it "updates existing countries with changed codes" do
+      create(:country, name: "India", code: "OLD")
+      file = upload_csv("name,code\nIndia,IN\n")
+      expect {
+        post bulk_import_api_v1_countries_path, params: { file: file }
+      }.not_to change(Country, :count)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["imported"]).to eq(0)
+      expect(json["updated"]).to eq(1)
+      expect(Country.find_by(name: "India").code).to eq("IN")
+    end
+
+    it "skips countries that already exist with the same code" do
+      create(:country, name: "India", code: "IN")
+      file = upload_csv("name,code\nIndia,IN\n")
+      post bulk_import_api_v1_countries_path, params: { file: file }
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["imported"]).to eq(0)
+      expect(json["updated"]).to eq(0)
+      expect(json["skipped"]).to eq(1)
+    end
+
+    it "returns error when no file is provided" do
+      post bulk_import_api_v1_countries_path
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import failed")
+      expect(json["errors"]).to include("No file provided")
+    end
+
+    it "rejects files with invalid extensions" do
+      tempfile = Tempfile.new(["countries", ".txt"])
+      tempfile.write("name,code\nIndia,IN\n")
+      tempfile.rewind
+      file = Rack::Test::UploadedFile.new(tempfile.path, "text/plain", false, original_filename: "countries.txt")
+      post bulk_import_api_v1_countries_path, params: { file: file }
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["message"]).to eq("Import failed")
+      expect(json["errors"]).to include(match(/Invalid file format/))
+    end
+
+    it "rejects CSV files with missing required headers" do
+      file = upload_csv("wrong_header,another\nIndia,IN\n")
+      post bulk_import_api_v1_countries_path, params: { file: file }
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to include(match(/Missing required columns/))
+    end
+
+    it "skips empty rows in the CSV" do
+      file = upload_csv("name,code\nIndia,IN\n,,\nJapan,JP\n")
+      expect {
+        post bulk_import_api_v1_countries_path, params: { file: file }
+      }.to change(Country, :count).by(2)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["imported"]).to eq(2)
+    end
+
+    it "reports row-level errors for invalid data" do
+      file = upload_csv("name,code\n,IN\n")
+      post bulk_import_api_v1_countries_path, params: { file: file }
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["errors"].length).to be > 0
+      expect(json["errors"].first).to match(/Row 2/)
+    end
+
+    it "handles mixed import — new, update, and skip in one file" do
+      create(:country, name: "India", code: "IN")
+      create(:country, name: "Japan", code: "OLD")
+      file = upload_csv("name,code\nIndia,IN\nJapan,JP\nGermany,DE\n")
+      post bulk_import_api_v1_countries_path, params: { file: file }
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["imported"]).to eq(1)
+      expect(json["updated"]).to eq(1)
+      expect(json["skipped"]).to eq(1)
+    end
+  end
 end

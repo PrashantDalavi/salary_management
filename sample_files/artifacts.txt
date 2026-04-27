@@ -71,4 +71,17 @@ Steps:
 - physical button has been created.
 - jest test cases have been written.
 
+commit 9:
+Prompt:
+- Please create a csv import functionality for countries, which will allow us to import countries from a csv file. and this import should also take validations. like if the country name and code is already existing then it should not be imported. and also if any other validation fails then it should not be imported.
+- now can you attach this end point with react along with test cases in react?i mean the last point of completing this functionality..
+please add jest test cases on react for csv import
+write the react functionality
+- i imported the countries.. i do not see all.. where is the pagination in here? can write rspec for the same and implement the pagination?
+Steps:
+- Wrote rspec for the country import functionality.
+- Created controller end point for country import functionality.
+- Created a function to handle the csv import functionality.
+- created react service end point to handle the csv import functionality. 
+- implemented pagination on the react side for country management.  
 

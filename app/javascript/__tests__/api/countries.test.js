@@ -11,9 +11,10 @@ describe("countries api", () => {
     global.fetch.mockReset();
   });
 
-  it("fetches countries index", async () => {
+  it("fetches countries index with default pagination", async () => {
     const payload = {
       countries: [{ id: 1, name: "India", code: "IN" }],
+      pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
     };
     global.fetch.mockResolvedValueOnce({
       ok: true,
@@ -23,14 +24,33 @@ describe("countries api", () => {
     const result = await fetchCountries();
 
     expect(global.fetch).toHaveBeenCalledWith(
-      "/api/v1/countries",
+      "/api/v1/countries?page=1&per_page=10",
       expect.objectContaining({
         headers: expect.objectContaining({
           "Content-Type": "application/json",
         }),
       }),
     );
-    expect(result).toEqual(payload.countries);
+    expect(result).toEqual(payload);
+  });
+
+  it("fetches countries with custom page and perPage", async () => {
+    const payload = {
+      countries: [{ id: 11, name: "Japan", code: "JP" }],
+      pagination: { current_page: 2, per_page: 5, total_count: 11, total_pages: 3 },
+    };
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(payload),
+    });
+
+    const result = await fetchCountries({ page: 2, perPage: 5 });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/v1/countries?page=2&per_page=5",
+      expect.anything(),
+    );
+    expect(result).toEqual(payload);
   });
 
   it("creates a country with JSON body", async () => {
