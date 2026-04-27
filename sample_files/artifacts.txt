@@ -137,5 +137,14 @@ create a csv sheet for department with name, code, country. and save this file i
 steps:
 - Created a csv file for department.
 
+commit 15:
+Prompt: 
+Can you create a csv import button on the react side for department? along with test cases, it should be a physical button and also when clicked on it,it should open to choose files.
+we need to have a similar button as we have on country page with similar kind of functionality and test cases.
+steps:
+- Created jest test cases for department csv import functionality.
+- Created department csv import functionality on the react side.
+- Created a navigation item for department csv import functionality in the admin panel.
+
 
 

@@ -7,6 +7,7 @@ import {
   updateDepartment,
   deleteDepartment,
   fetchCountries,
+  bulkImportDepartments,
 } from "../../services/api";
 
 jest.mock("../../services/api", () => ({
@@ -15,6 +16,7 @@ jest.mock("../../services/api", () => ({
   updateDepartment: jest.fn(),
   deleteDepartment: jest.fn(),
   fetchCountries: jest.fn(),
+  bulkImportDepartments: jest.fn(),
 }));
 
 const DEPARTMENTS_PAGE_1 = {
@@ -142,5 +144,86 @@ describe("DepartmentsList", () => {
     render(<DepartmentsList />);
 
     expect(await screen.findByText("No departments found")).toBeInTheDocument();
+  });
+
+  it("renders the Import CSV/Excel button", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    expect(screen.getByText("📥 Import CSV/Excel")).toBeInTheDocument();
+  });
+
+  it("triggers file input when Import button is clicked", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const clickSpy = jest.spyOn(fileInput, "click");
+
+    fireEvent.click(screen.getByText("📥 Import CSV/Excel"));
+
+    expect(clickSpy).toHaveBeenCalled();
+    clickSpy.mockRestore();
+  });
+
+  it("imports a CSV file and shows success result", async () => {
+    fetchDepartments.mockResolvedValue(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValue(COUNTRIES_LIST);
+    bulkImportDepartments.mockResolvedValueOnce({
+      message: "Import completed",
+      imported: 3,
+      updated: 1,
+      skipped: 0,
+    });
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = new File(["name,code,country_code\nEngineering,ENG,IN"], "departments.csv", { type: "text/csv" });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(bulkImportDepartments).toHaveBeenCalledWith(file);
+      expect(screen.getByText(/Import completed/)).toBeInTheDocument();
+      expect(screen.getByText(/Imported: 3/)).toBeInTheDocument();
+    });
+  });
+
+  it("shows error message when import fails", async () => {
+    fetchDepartments.mockResolvedValue(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValue(COUNTRIES_LIST);
+    bulkImportDepartments.mockRejectedValueOnce(new Error("Invalid file format"));
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = new File(["bad data"], "bad.txt", { type: "text/plain" });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Invalid file format/)).toBeInTheDocument();
+      expect(screen.getByText(/Imported: 0/)).toBeInTheDocument();
+    });
+  });
+
+  it("accepts .csv, .xlsx, .xls file types", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_EMPTY);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("No departments found");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    expect(fileInput.getAttribute("accept")).toBe(".csv,.xlsx,.xls");
   });
 });
