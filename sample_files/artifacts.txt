@@ -214,4 +214,22 @@ steps:
 - Created rspec for employee model functionality.
 - Created employee model functionality.
 
+commit 22:
+Prompt:
+- we need to create controller end points for employee. it should support for listing, fetching single record, creating and updating. and we need to create rspec for the same as well.
+steps: 
+- Created rspec for employee controller end point functionality.
+- Created employee controller end point functionality.
+steps:
+- Created rspec for employee controller end point functionality.
+- Created employee controller end point functionality.
+
+commit 23:
+Prompt:
+- Can you create a csv for 10000 employee which i can use it for bulk import using the same? look at the schema and create a csv with 10000 records in it. all employed should belong to different department and countries and also with different job title and salary.
+Save this file in sample_files and name of the file should be bulk_employees.csv
+steps:
+- Created a csv file for employee with 10000 records.
+
+
 
