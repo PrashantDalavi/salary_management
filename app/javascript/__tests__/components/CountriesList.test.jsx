@@ -6,6 +6,7 @@ import {
   createCountry,
   updateCountry,
   deleteCountry,
+  bulkImportCountries,
 } from "../../services/api";
 
 jest.mock("../../services/api", () => ({
@@ -13,6 +14,7 @@ jest.mock("../../services/api", () => ({
   createCountry: jest.fn(),
   updateCountry: jest.fn(),
   deleteCountry: jest.fn(),
+  bulkImportCountries: jest.fn(),
 }));
 
 describe("CountriesList", () => {
@@ -122,5 +124,89 @@ describe("CountriesList", () => {
     render(<CountriesList globalSearch="" />);
 
     expect(await screen.findByText("No countries found")).toBeInTheDocument();
+  });
+
+  it("renders the Import CSV/Excel button", async () => {
+    fetchCountries.mockResolvedValueOnce([
+      { id: 1, name: "India", code: "IN" },
+    ]);
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    expect(screen.getByText("📥 Import CSV/Excel")).toBeInTheDocument();
+  });
+
+  it("triggers file input when Import button is clicked", async () => {
+    fetchCountries.mockResolvedValueOnce([
+      { id: 1, name: "India", code: "IN" },
+    ]);
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const clickSpy = jest.spyOn(fileInput, "click");
+
+    fireEvent.click(screen.getByText("📥 Import CSV/Excel"));
+
+    expect(clickSpy).toHaveBeenCalled();
+    clickSpy.mockRestore();
+  });
+
+  it("imports a CSV file and shows success result", async () => {
+    fetchCountries.mockResolvedValue([
+      { id: 1, name: "India", code: "IN" },
+    ]);
+    bulkImportCountries.mockResolvedValueOnce({
+      message: "Import complete",
+      imported: 3,
+      updated: 1,
+      skipped: 0,
+    });
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = new File(["name,code\nGermany,DE"], "countries.csv", { type: "text/csv" });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(bulkImportCountries).toHaveBeenCalledWith(file);
+      expect(screen.getByText(/Import complete/)).toBeInTheDocument();
+      expect(screen.getByText(/Imported: 3/)).toBeInTheDocument();
+    });
+  });
+
+  it("shows error message when import fails", async () => {
+    fetchCountries.mockResolvedValue([
+      { id: 1, name: "India", code: "IN" },
+    ]);
+    bulkImportCountries.mockRejectedValueOnce(new Error("Invalid file format"));
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = new File(["bad data"], "bad.txt", { type: "text/plain" });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Invalid file format/)).toBeInTheDocument();
+      expect(screen.getByText(/Imported: 0/)).toBeInTheDocument();
+    });
+  });
+
+  it("accepts .csv, .xlsx, .xls file types", async () => {
+    fetchCountries.mockResolvedValueOnce([]);
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("No countries found");
+
+    const fileInput = document.querySelector('input[type="file"]');
+    expect(fileInput.getAttribute("accept")).toBe(".csv,.xlsx,.xls");
   });
 });

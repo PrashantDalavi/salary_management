@@ -61,4 +61,14 @@ this file should have name of the country and country code and save this file in
 Steps:
 - Created a csv file for countries.
 
+Commit 8:
+Prompt:
+- now We need jest test cases for csv import or excel  import functionality on front end..
+what i need is.
+i need a button named bulk import and when clicked on it it opens up file choosing option and allows us to select the file and when selected it technically triggers the csv import end point but for now we do not have any so it does nothing.
+but i need jest cases for all the specifications mentioned above and also react integration for button and file choosing option.
+Steps:
+- physical button has been created.
+- jest test cases have been written.
+
 

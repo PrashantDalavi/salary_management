@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { fetchCountries, createCountry, updateCountry, deleteCountry } from "../../services/api";
+import { fetchCountries, createCountry, updateCountry, deleteCountry, bulkImportCountries } from "../../services/api";
 import Modal from "../common/Modal";
 
 export default function CountriesList({ globalSearch }) {
@@ -11,6 +11,9 @@ export default function CountriesList({ globalSearch }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [formData, setFormData] = useState({ name: "", code: "" });
   const [formErrors, setFormErrors] = useState([]);
+  const [importResult, setImportResult] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     loadCountries();
@@ -103,6 +106,25 @@ export default function CountriesList({ globalSearch }) {
     setFormErrors([]);
   }
 
+  async function handleImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const result = await bulkImportCountries(file);
+      setImportResult(result);
+      loadCountries();
+    } catch (err) {
+      setImportResult({ message: err.message, imported: 0, skipped: 0 });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -111,9 +133,42 @@ export default function CountriesList({ globalSearch }) {
           <div className="page-header-subtitle">{filtered.length} countries</div>
         </div>
         <div style={{ display: "flex", gap: "var(--space-sm)" }}>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".csv,.xlsx,.xls"
+            onChange={handleImport}
+            style={{ display: "none" }}
+          />
+          <button
+            className="btn btn-secondary"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+          >
+            {importing ? "Importing..." : "📥 Import CSV/Excel"}
+          </button>
           <button className="btn btn-primary" onClick={handleAdd}>+ Add Country</button>
         </div>
       </div>
+
+      {importResult && (
+        <div style={{
+          padding: "var(--space-md) var(--space-lg)",
+          marginBottom: "var(--space-lg)",
+          borderRadius: "var(--radius-md)",
+          fontSize: "var(--font-size-sm)",
+          background: importResult.imported > 0 ? "#ecfdf5" : "#fef2f2",
+          color: importResult.imported > 0 ? "#065f46" : "#991b1b",
+          border: `1px solid ${importResult.imported > 0 ? "#a7f3d0" : "#fecaca"}`
+        }}>
+          {importResult.message} — Imported: {importResult.imported}, Updated: {importResult.updated || 0}, Skipped: {importResult.skipped}
+          {importResult.errors?.length > 0 && (
+            <div style={{ marginTop: "var(--space-xs)" }}>
+              {importResult.errors.map((err, i) => <div key={i}>• {err}</div>)}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="data-table-wrapper">
         <table className="data-table">
