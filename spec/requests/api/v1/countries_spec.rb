@@ -31,6 +31,53 @@ RSpec.describe "Api::V1::Countries", type: :request do
       expect(body["pagination"]["current_page"]).to eq(1)
       expect(body["pagination"]["per_page"]).to eq(10)
     end
+
+    it "searches countries by name" do
+      create(:country, name: "India", code: "IN")
+      create(:country, name: "Indonesia", code: "ID")
+      create(:country, name: "United States", code: "US")
+
+      get "/api/v1/countries", params: { search: "ind" }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      names = body["countries"].map { |c| c["name"] }
+      expect(names).to include("India", "Indonesia")
+      expect(names).not_to include("United States")
+    end
+
+    it "searches countries by code" do
+      create(:country, name: "India", code: "IN")
+      create(:country, name: "United States", code: "US")
+
+      get "/api/v1/countries", params: { search: "US" }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      names = body["countries"].map { |c| c["name"] }
+      expect(names).to include("United States")
+      expect(names).not_to include("India")
+    end
+
+    it "search is case-insensitive" do
+      create(:country, name: "Japan", code: "JP")
+
+      get "/api/v1/countries", params: { search: "japan" }
+
+      body = JSON.parse(response.body)
+      expect(body["countries"].size).to eq(1)
+      expect(body["countries"].first["name"]).to eq("Japan")
+    end
+
+    it "returns all countries when search is blank" do
+      create(:country, name: "India", code: "IN")
+      create(:country, name: "Japan", code: "JP")
+
+      get "/api/v1/countries", params: { search: "" }
+
+      body = JSON.parse(response.body)
+      expect(body["countries"].size).to eq(2)
+    end
   end
 
   describe "GET /api/v1/countries/:id" do

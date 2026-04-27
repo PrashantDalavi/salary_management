@@ -53,6 +53,25 @@ describe("countries api", () => {
     expect(result).toEqual(payload);
   });
 
+  it("fetches countries with search param", async () => {
+    const payload = {
+      countries: [{ id: 1, name: "India", code: "IN" }],
+      pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
+    };
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(payload),
+    });
+
+    const result = await fetchCountries({ page: 1, perPage: 10, search: "ind" });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/v1/countries?page=1&per_page=10&search=ind",
+      expect.anything(),
+    );
+    expect(result).toEqual(payload);
+  });
+
   it("creates a country with JSON body", async () => {
     const payload = { id: 3, name: "Germany", code: "DE" };
     global.fetch.mockResolvedValueOnce({

@@ -57,7 +57,7 @@ describe("CountriesList", () => {
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
 
-    expect(fetchCountries).toHaveBeenCalledWith({ page: 1, perPage: 10 });
+    expect(fetchCountries).toHaveBeenCalledWith({ page: 1, perPage: 10, search: "" });
   });
 
   it("navigates to next page when page button is clicked", async () => {
@@ -72,7 +72,7 @@ describe("CountriesList", () => {
 
     await waitFor(() => {
       expect(fetchCountries).toHaveBeenCalledTimes(2);
-      expect(fetchCountries).toHaveBeenLastCalledWith({ page: 2, perPage: 10 });
+      expect(fetchCountries).toHaveBeenLastCalledWith({ page: 2, perPage: 10, search: "" });
     });
   });
 
@@ -149,14 +149,54 @@ describe("CountriesList", () => {
     });
   });
 
-  it("filters countries by global search", async () => {
+  it("renders the search input", async () => {
     fetchCountries.mockResolvedValueOnce(PAGE_1_RESPONSE);
 
-    render(<CountriesList globalSearch="japan" />);
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    expect(screen.getByPlaceholderText("Search countries...")).toBeInTheDocument();
+  });
+
+  it("calls fetchCountries with search param when typing", async () => {
+    fetchCountries
+      .mockResolvedValueOnce(PAGE_1_RESPONSE)
+      .mockResolvedValueOnce({
+        countries: [{ id: 1, name: "India", code: "IN" }],
+        pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
+      });
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    fireEvent.change(screen.getByPlaceholderText("Search countries..."), { target: { value: "ind" } });
 
     await waitFor(() => {
-      expect(screen.getByText("Japan")).toBeInTheDocument();
-      expect(screen.queryByText("India")).not.toBeInTheDocument();
+      expect(fetchCountries).toHaveBeenLastCalledWith({ page: 1, perPage: 10, search: "ind" });
+    });
+  });
+
+  it("resets page to 1 when search term changes", async () => {
+    fetchCountries
+      .mockResolvedValueOnce(MULTI_PAGE_RESPONSE_P1)
+      .mockResolvedValueOnce(MULTI_PAGE_RESPONSE_P2)
+      .mockResolvedValueOnce({
+        countries: [{ id: 1, name: "India", code: "IN" }],
+        pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
+      });
+
+    render(<CountriesList globalSearch="" />);
+    await screen.findByText("India");
+
+    // Go to page 2 first
+    fireEvent.click(screen.getByText("›"));
+    await waitFor(() => expect(fetchCountries).toHaveBeenCalledTimes(2));
+
+    // Now search — should reset to page 1
+    fireEvent.change(screen.getByPlaceholderText("Search countries..."), { target: { value: "ind" } });
+
+    await waitFor(() => {
+      expect(fetchCountries).toHaveBeenLastCalledWith({ page: 1, perPage: 10, search: "ind" });
     });
   });
 

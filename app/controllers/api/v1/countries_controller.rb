@@ -9,7 +9,7 @@ module Api
         page = 1 if page <= 0
         per_page = 10 if per_page <= 0
 
-        countries = Country.order(:id).page(page).per(per_page)
+        countries = Country.search(params[:search]).order(:id).page(page).per(per_page)
 
         render json: {
           countries: countries,

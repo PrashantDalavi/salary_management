@@ -9,6 +9,7 @@ export default function CountriesList({ globalSearch }) {
   const [perPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
   const [showForm, setShowForm] = useState(false);
@@ -22,11 +23,11 @@ export default function CountriesList({ globalSearch }) {
 
   useEffect(() => {
     loadCountries();
-  }, [page]);
+  }, [page, searchTerm]);
 
   async function loadCountries() {
     try {
-      const data = await fetchCountries({ page, perPage });
+      const data = await fetchCountries({ page, perPage, search: searchTerm });
       setCountries(data.countries || []);
       if (data.pagination) {
         setTotalPages(data.pagination.total_pages);
@@ -37,12 +38,12 @@ export default function CountriesList({ globalSearch }) {
     }
   }
 
+  function handleSearch(e) {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  }
+
   const filtered = countries
-    .filter(c => {
-      if (!globalSearch) return true;
-      const q = globalSearch.toLowerCase();
-      return c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
-    })
     .sort((a, b) => {
       const valA = typeof a[sortBy] === "string" ? a[sortBy].toLowerCase() : a[sortBy];
       const valB = typeof b[sortBy] === "string" ? b[sortBy].toLowerCase() : b[sortBy];
@@ -146,7 +147,16 @@ export default function CountriesList({ globalSearch }) {
           <h2>Countries</h2>
           <div className="page-header-subtitle">{totalCount} countries</div>
         </div>
-        <div style={{ display: "flex", gap: "var(--space-sm)" }}>
+        <div style={{ display: "flex", gap: "var(--space-sm)", alignItems: "center" }}>
+          <div className="header-search" style={{ minWidth: 200 }}>
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search countries..."
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+          </div>
           <input
             type="file"
             ref={fileInputRef}
