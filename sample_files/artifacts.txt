@@ -268,6 +268,26 @@ steps:
 - Optimized performance using `insert_all` to execute bulk SQL inserts in batches.
 - Pre-loaded related Country and Department IDs into memory to completely eliminate N+1 queries.
 
+commit 28:
+Prompt:
+Please update the Readme file and include the complete tech stack that we have used for building this application.
+steps:
+- Updated the Readme file with the complete tech stack that we have used for building this application.
+
+commit 29: 
+Prommpt: Please dockerise this app and make sure it runs locally on my machine using docker compose. keep the username and password as prashant and password as prashant for db configuration, and make sure we have everything in place for it. also make sure the app runs using docker compose
+steps: 
+- Created dockerfile for the application.
+- Created docker-compose.yml for the application.
+- Updated the docker-compose.yml to include the database configuration.
+- Updated the docker-compose.yml to include the redis configuration.
+- Updated the docker-compose.yml to include the rails configuration.
+- Updated the docker-compose.yml to include the react configuration.
+- Updated the docker-compose.yml to include the nginx configuration.
+- Updated the docker-compose.yml to include the .env file.
+- Updated the docker-compose.yml to include the docker-entrypoint.sh file.
+- Updated the docker-compose.yml to include the docker-entrypoint.sh file.
+- Updated the docker-compose.yml to include the docker-entrypoint.sh file.
 
 
 
