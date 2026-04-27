@@ -174,5 +174,24 @@ steps:
 - Created department search functionality on the rails end point.
 - implemented the department search functionality on the rails end point.
 
+commit 19:
+Prompt: 
+lets jump on to employee table, 
+first step, lets just create a migration file and an rspec for the same, no model or nothing, just a migration file for employee.
+the columns to include
+first_name
+last_name
+employee_id
+country_id
+department_id
+salary
+currency
+and i need rspec for the same.
+make sure we have proper indexes as well.
+steps:
+- Created rspec for employee migration functionality.
+- Created employee migration functionality.
+
+
 
 
