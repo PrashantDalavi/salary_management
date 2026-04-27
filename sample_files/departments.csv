@@ -1,0 +1,20 @@
+name,code,country_code,description
+Engineering,ENG,US,Software development and technical operations
+Marketing,MKT,US,Brand management and marketing campaigns
+Sales,SAL,US,Revenue generation and client relationships
+Human Resources,HR,US,Employee management and recruitment
+Finance,FIN,US,Financial planning and accounting
+Operations,OPS,US,Business operations and logistics
+Design,DES,US,Product and visual design
+Product,PRD,US,Product strategy and management
+Engineering,ENG,IN,Software development and technical operations
+Marketing,MKT,IN,Brand management and marketing campaigns
+Sales,SAL,IN,Revenue generation and client relationships
+Human Resources,HR,IN,Employee management and recruitment
+Finance,FIN,IN,Financial planning and accounting
+Engineering,ENG,GB,Software development and technical operations
+Marketing,MKT,GB,Brand management and marketing campaigns
+Sales,SAL,GB,Revenue generation and client relationships
+Engineering,ENG,DE,Software development and technical operations
+Finance,FIN,DE,Financial planning and accounting
+Operations,OPS,DE,Business operations and logistics
