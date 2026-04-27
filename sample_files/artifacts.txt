@@ -165,6 +165,14 @@ steps:
 - Created department search functionality on the react side.
 - Created a navigation item for department search functionality in the admin panel.
 
+commit 18:
+Prompt: 
+- lets first begin with search functionality rspec test cases and then implement the search functionality based on the input that we receive from the react app.
+the search should happen based on name and country. use ilike and make sure we have independent search method in the department model, lets keep the controller light and heavy logics in the model
+steps:
+- Created rspec for department search functionality.
+- Created department search functionality on the rails end point.
+- implemented the department search functionality on the rails end point.
 
 
 

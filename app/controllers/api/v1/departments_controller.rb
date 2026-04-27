@@ -9,7 +9,7 @@ module Api
         page = 1 if page <= 0
         per_page = 10 if per_page <= 0
 
-        departments = Department.includes(:country).order(:id).page(page).per(per_page)
+        departments = Department.search(params[:search]).includes(:country).order(:id).page(page).per(per_page)
 
         render json: {
           departments: departments.as_json(include: { country: { only: [ :id, :name, :code ] } }),

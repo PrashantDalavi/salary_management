@@ -51,6 +51,43 @@ RSpec.describe "Api::V1::Departments", type: :request do
       ids = body["departments"].map { |d| d["id"] }
       expect(ids).to eq(ids.sort)
     end
+
+    it "searches departments by name" do
+      get "/api/v1/departments", params: { search: "eng" }
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      names = body["departments"].map { |d| d["name"] }
+      expect(names).to include("Engineering")
+      expect(names).not_to include("Marketing", "Sales")
+    end
+
+    it "searches departments by country name" do
+      usa = create(:country, name: "United States", code: "US")
+      create(:department, name: "Finance", code: "FIN", country: usa)
+
+      get "/api/v1/departments", params: { search: "united" }
+
+      body = JSON.parse(response.body)
+      names = body["departments"].map { |d| d["name"] }
+      expect(names).to include("Finance")
+      expect(names).not_to include("Engineering")
+    end
+
+    it "search is case-insensitive" do
+      get "/api/v1/departments", params: { search: "ENGINEERING" }
+
+      body = JSON.parse(response.body)
+      expect(body["departments"].size).to eq(1)
+      expect(body["departments"].first["name"]).to eq("Engineering")
+    end
+
+    it "returns all departments when search is blank" do
+      get "/api/v1/departments", params: { search: "" }
+
+      body = JSON.parse(response.body)
+      expect(body["departments"].size).to eq(3)
+    end
   end
 
   describe "GET /api/v1/departments/:id" do
