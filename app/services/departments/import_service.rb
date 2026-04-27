@@ -71,17 +71,13 @@ class Departments::ImportService
       name = row[name_index]&.to_s&.strip
       code = row[code_index]&.to_s&.strip
       country_code = row[country_code_index]&.to_s&.strip
-
       next if name.blank? && code.blank?
-
       country = Country.find_by(code: country_code)
       if country.nil?
         @errors << "Row #{row_number} (#{name}, #{code}): Country with code '#{country_code}' not found"
         next
       end
-
       department = Department.find_by(name: name, country_id: country.id)
-
       if department.nil?
         department = Department.new(name: name, code: code, country: country)
         if department.save

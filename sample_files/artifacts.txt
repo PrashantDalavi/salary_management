@@ -156,5 +156,15 @@ steps:
 - created department csv import functionality on the rails end point.
 - created service class for department csv import functionality.
 
+commit 17:
+Prompt: 
+- lets create search funtionality on he react side for department?it should be purely for department and its on the react side.
+we need search department based on name and country and also we need jest test cases for the same.
+steps:
+- Created jest test cases for department search functionality.
+- Created department search functionality on the react side.
+- Created a navigation item for department search functionality in the admin panel.
+
+
 
 

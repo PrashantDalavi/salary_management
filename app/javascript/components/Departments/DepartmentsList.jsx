@@ -10,6 +10,7 @@ export default function DepartmentsList() {
   const [perPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
   const [showForm, setShowForm] = useState(false);
@@ -49,7 +50,13 @@ export default function DepartmentsList() {
     }
   }
 
-  const sorted = [...departments].sort((a, b) => {
+  const filtered = departments.filter(d => {
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return d.name.toLowerCase().includes(q) || (d.country?.name || "").toLowerCase().includes(q);
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
     const valA = typeof a[sortBy] === "string" ? a[sortBy].toLowerCase() : a[sortBy];
     const valB = typeof b[sortBy] === "string" ? b[sortBy].toLowerCase() : b[sortBy];
     if (valA < valB) return sortDir === "asc" ? -1 : 1;
@@ -153,6 +160,15 @@ export default function DepartmentsList() {
           <div className="page-header-subtitle">{totalCount} departments</div>
         </div>
         <div style={{ display: "flex", gap: "var(--space-sm)", alignItems: "center" }}>
+          <div className="header-search" style={{ minWidth: 200 }}>
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search departments..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <input
             type="file"
             ref={fileInputRef}

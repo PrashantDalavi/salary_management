@@ -146,6 +146,69 @@ describe("DepartmentsList", () => {
     expect(await screen.findByText("No departments found")).toBeInTheDocument();
   });
 
+  it("renders the search input", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    expect(screen.getByPlaceholderText("Search departments...")).toBeInTheDocument();
+  });
+
+  it("filters departments by name", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    fireEvent.change(screen.getByPlaceholderText("Search departments..."), { target: { value: "eng" } });
+
+    expect(screen.getByText("Engineering")).toBeInTheDocument();
+    expect(screen.queryByText("Marketing")).not.toBeInTheDocument();
+  });
+
+  it("filters departments by country name", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    fireEvent.change(screen.getByPlaceholderText("Search departments..."), { target: { value: "usa" } });
+
+    expect(screen.getByText("Marketing")).toBeInTheDocument();
+    expect(screen.queryByText("Engineering")).not.toBeInTheDocument();
+  });
+
+  it("shows no departments when search has no match", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    fireEvent.change(screen.getByPlaceholderText("Search departments..."), { target: { value: "zzzzz" } });
+
+    expect(screen.getByText("No departments found")).toBeInTheDocument();
+  });
+
+  it("shows all departments when search is cleared", async () => {
+    fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
+    fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
+
+    render(<DepartmentsList />);
+    await screen.findByText("Engineering");
+
+    fireEvent.change(screen.getByPlaceholderText("Search departments..."), { target: { value: "eng" } });
+    expect(screen.queryByText("Marketing")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("Search departments..."), { target: { value: "" } });
+    expect(screen.getByText("Engineering")).toBeInTheDocument();
+    expect(screen.getByText("Marketing")).toBeInTheDocument();
+  });
+
   it("renders the Import CSV/Excel button", async () => {
     fetchDepartments.mockResolvedValueOnce(DEPARTMENTS_PAGE_1);
     fetchCountries.mockResolvedValueOnce(COUNTRIES_LIST);
