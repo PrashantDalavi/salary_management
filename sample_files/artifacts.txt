@@ -111,3 +111,14 @@ steps:
 - Rspec test cases for model validations has been written.
 
 
+commit 12:
+Prompt:
+- i want to create CRUD operations for department along with rspec for every scenario. and these are going to be end points which are going to be consumed by react app. make sure there is a support for pagination as well when it is listing page.
+steps:
+-  Rspec for department end points has been written.
+-  Created routes for department end points.
+-  Created controller for department end points.
+-  Rspec for the routes have been updated
+
+
+
