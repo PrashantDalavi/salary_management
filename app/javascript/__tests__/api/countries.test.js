@@ -1,60 +1,43 @@
 import {
+  fetchCountries,
   createCountry,
-  deleteCountry,
-  getCountries,
-  getCountry,
   updateCountry,
-} from "../../api/countries";
-
-function mockResponse({ ok = true, status = 200, body = {} } = {}) {
-  global.fetch.mockResolvedValueOnce({
-    ok,
-    status,
-    text: jest.fn().mockResolvedValue(body === null ? "" : JSON.stringify(body)),
-  });
-}
+  deleteCountry,
+} from "../../services/api";
 
 describe("countries api", () => {
   beforeEach(() => {
-    global.fetch = jest.fn();
+    global.fetch.mockReset();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("fetches countries index with pagination params", async () => {
+  it("fetches countries index", async () => {
     const payload = {
       countries: [{ id: 1, name: "India", code: "IN" }],
-      pagination: { current_page: 2, per_page: 5, total_count: 12, total_pages: 3 },
     };
-    mockResponse({ body: payload });
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(payload),
+    });
 
-    const result = await getCountries({ page: 2, perPage: 5 });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/v1/countries?page=2&per_page=5",
-      expect.objectContaining({ method: "GET" }),
-    );
-    expect(result).toEqual(payload);
-  });
-
-  it("fetches one country (show)", async () => {
-    const payload = { id: 11, name: "Japan", code: "JP" };
-    mockResponse({ body: payload });
-
-    const result = await getCountry(11);
+    const result = await fetchCountries();
 
     expect(global.fetch).toHaveBeenCalledWith(
-      "/api/v1/countries/11",
-      expect.objectContaining({ method: "GET" }),
+      "/api/v1/countries",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+        }),
+      }),
     );
-    expect(result).toEqual(payload);
+    expect(result).toEqual(payload.countries);
   });
 
-  it("creates country", async () => {
+  it("creates a country with JSON body", async () => {
     const payload = { id: 3, name: "Germany", code: "DE" };
-    mockResponse({ status: 201, body: payload });
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(payload),
+    });
 
     const result = await createCountry({ name: "Germany", code: "DE" });
 
@@ -68,24 +51,30 @@ describe("countries api", () => {
     expect(result).toEqual(payload);
   });
 
-  it("updates country", async () => {
+  it("updates a country with PATCH", async () => {
     const payload = { id: 3, name: "Deutschland", code: "DE" };
-    mockResponse({ body: payload });
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(payload),
+    });
 
     const result = await updateCountry(3, { name: "Deutschland", code: "DE" });
 
     expect(global.fetch).toHaveBeenCalledWith(
       "/api/v1/countries/3",
       expect.objectContaining({
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify({ country: { name: "Deutschland", code: "DE" } }),
       }),
     );
     expect(result).toEqual(payload);
   });
 
-  it("deletes country", async () => {
-    mockResponse({ status: 204, body: null });
+  it("deletes a country", async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ message: "deleted" }),
+    });
 
     const result = await deleteCountry(9);
 
@@ -93,19 +82,17 @@ describe("countries api", () => {
       "/api/v1/countries/9",
       expect.objectContaining({ method: "DELETE" }),
     );
-    expect(result).toBe(true);
+    expect(result).toEqual({ message: "deleted" });
   });
 
-  it("returns parsed validation errors", async () => {
-    mockResponse({
+  it("throws on validation errors", async () => {
+    global.fetch.mockResolvedValueOnce({
       ok: false,
-      status: 422,
-      body: { errors: ["Name can't be blank"] },
+      json: () => Promise.resolve({ errors: ["Name can't be blank"] }),
     });
 
-    await expect(createCountry({ name: "", code: "IN" })).rejects.toMatchObject({
-      status: 422,
-      data: { errors: ["Name can't be blank"] },
-    });
+    await expect(createCountry({ name: "", code: "IN" })).rejects.toThrow(
+      "Name can't be blank",
+    );
   });
 });

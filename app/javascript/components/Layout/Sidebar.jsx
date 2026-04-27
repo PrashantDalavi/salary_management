@@ -2,19 +2,18 @@ import React from "react";
 
 export default function Sidebar({ activeView, onNavigate }) {
   const navItems = [
-    { key: "dashboard", label: "Dashboard", icon: "📊", badge: null },
     { key: "countries", label: "Countries", icon: "🌍", badge: null },
   ];
 
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <h1>Salary Management</h1>
+        <h1>SalaryMgr</h1>
         <span>Admin Panel</span>
       </div>
 
       <nav className="sidebar-nav">
-        <div className="sidebar-section-label">Navigation</div>
+        <div className="sidebar-section-label">Data Management</div>
         {navItems.map(item => (
           <div
             key={item.key}

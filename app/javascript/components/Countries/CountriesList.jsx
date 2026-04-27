@@ -1,137 +1,106 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  createCountry,
-  deleteCountry,
-  getCountries,
-  getCountry,
-  updateCountry,
-} from "../../api/countries";
-
-const DEFAULT_FORM = { name: "", code: "" };
+import React, { useState, useEffect, useRef } from "react";
+import { fetchCountries, createCountry, updateCountry, deleteCountry } from "../../services/api";
+import Modal from "../common/Modal";
 
 export default function CountriesList({ globalSearch }) {
   const [countries, setCountries] = useState([]);
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    per_page: 10,
-    total_count: 0,
-    total_pages: 0,
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState("create");
-  const [formData, setFormData] = useState(DEFAULT_FORM);
-  const [editingCountryId, setEditingCountryId] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
+  const [showForm, setShowForm] = useState(false);
+  const [editingCountry, setEditingCountry] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [formData, setFormData] = useState({ name: "", code: "" });
+  const [formErrors, setFormErrors] = useState([]);
 
   useEffect(() => {
-    loadCountries(pagination.current_page, pagination.per_page);
-  }, [pagination.current_page, pagination.per_page]);
+    loadCountries();
+  }, []);
 
-  async function loadCountries(page, perPage) {
-    setLoading(true);
-    setError("");
-
+  async function loadCountries() {
     try {
-      const response = await getCountries({ page, perPage });
-      setCountries(response.countries || []);
-      setPagination(prev => ({
-        ...prev,
-        ...(response.pagination || {}),
-      }));
-    } catch (err) {
-      setError(err.message || "Failed to load countries");
-    } finally {
-      setLoading(false);
+      const data = await fetchCountries();
+      setCountries(data);
+    } catch {
+      setCountries([]);
     }
   }
 
-  const filteredCountries = useMemo(() => {
-    const query = (globalSearch || "").trim().toLowerCase();
-    if (!query) return countries;
+  const filtered = countries
+    .filter(c => {
+      if (!globalSearch) return true;
+      const q = globalSearch.toLowerCase();
+      return c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      const valA = typeof a[sortBy] === "string" ? a[sortBy].toLowerCase() : a[sortBy];
+      const valB = typeof b[sortBy] === "string" ? b[sortBy].toLowerCase() : b[sortBy];
+      if (valA < valB) return sortDir === "asc" ? -1 : 1;
+      if (valA > valB) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
 
-    return countries.filter(country =>
-      country.name.toLowerCase().includes(query) ||
-      country.code.toLowerCase().includes(query),
-    );
-  }, [countries, globalSearch]);
-
-  function openCreateModal() {
-    setFormMode("create");
-    setEditingCountryId(null);
-    setFormData(DEFAULT_FORM);
-    setFormOpen(true);
+  function handleSort(col) {
+    if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortBy(col); setSortDir("asc"); }
   }
 
-  function openEditModal(country) {
-    setFormMode("edit");
-    setEditingCountryId(country.id);
+  function renderSortIndicator(col) {
+    if (sortBy !== col) return <span className="sort-indicator">↕</span>;
+    return <span className="sort-indicator">{sortDir === "asc" ? "↑" : "↓"}</span>;
+  }
+
+  function handleAdd() {
+    setEditingCountry(null);
+    setFormData({ name: "", code: "" });
+    setFormErrors([]);
+    setShowForm(true);
+  }
+
+  function handleEdit(country) {
+    setEditingCountry(country);
     setFormData({ name: country.name, code: country.code });
-    setFormOpen(true);
+    setFormErrors([]);
+    setShowForm(true);
   }
 
-  async function openShowModal(countryId) {
-    setError("");
-    try {
-      const country = await getCountry(countryId);
-      setSelectedCountry(country);
-    } catch (err) {
-      setError(err.message || "Failed to fetch country");
-    }
+  function handleFormChange(e) {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   }
 
-  function closeFormModal() {
-    setFormOpen(false);
-    setFormData(DEFAULT_FORM);
-    setEditingCountryId(null);
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    setFormErrors([]);
 
     try {
-      if (formMode === "edit" && editingCountryId) {
-        await updateCountry(editingCountryId, formData);
+      if (editingCountry) {
+        await updateCountry(editingCountry.id, formData);
       } else {
         await createCountry(formData);
       }
-
-      closeFormModal();
-      await loadCountries(pagination.current_page, pagination.per_page);
+      setShowForm(false);
+      setEditingCountry(null);
+      loadCountries();
     } catch (err) {
-      setError(err.message || "Failed to save country");
-    } finally {
-      setSaving(false);
+      setFormErrors([err.message]);
     }
   }
 
-  async function handleDelete(countryId) {
-    const confirmed = window.confirm("Delete this country?");
-    if (!confirmed) return;
-
-    setError("");
-
+  async function handleDelete() {
+    if (!deleteTarget) return;
     try {
-      await deleteCountry(countryId);
-      await loadCountries(pagination.current_page, pagination.per_page);
+      await deleteCountry(deleteTarget.id);
+      setDeleteTarget(null);
+      loadCountries();
     } catch (err) {
-      setError(err.message || "Failed to delete country");
+      setFormErrors([err.message]);
     }
   }
 
-  async function goToPage(pageNumber) {
-    if (pageNumber < 1 || pageNumber > pagination.total_pages || pageNumber === pagination.current_page) {
-      return;
-    }
-
-    setPagination(prev => ({
-      ...prev,
-      current_page: pageNumber,
-    }));
+  function closeForm() {
+    setShowForm(false);
+    setEditingCountry(null);
+    setFormErrors([]);
   }
 
   return (
@@ -139,45 +108,36 @@ export default function CountriesList({ globalSearch }) {
       <div className="page-header">
         <div>
           <h2>Countries</h2>
-          <p className="page-header-subtitle">Manage country records</p>
+          <div className="page-header-subtitle">{filtered.length} countries</div>
         </div>
-        <button className="btn btn-primary" onClick={openCreateModal}>
-          + Add Country
-        </button>
+        <div style={{ display: "flex", gap: "var(--space-sm)" }}>
+          <button className="btn btn-primary" onClick={handleAdd}>+ Add Country</button>
+        </div>
       </div>
-
-      {error && <p className="error-text">{error}</p>}
 
       <div className="data-table-wrapper">
         <table className="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Code</th>
+              <th onClick={() => handleSort("id")}>ID {renderSortIndicator("id")}</th>
+              <th onClick={() => handleSort("name")}>Name {renderSortIndicator("name")}</th>
+              <th onClick={() => handleSort("code")}>Code {renderSortIndicator("code")}</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={4}>Loading...</td>
-              </tr>
-            ) : filteredCountries.length === 0 ? (
-              <tr>
-                <td colSpan={4}>No countries found.</td>
-              </tr>
+            {filtered.length === 0 ? (
+              <tr><td colSpan="4"><div className="empty-state"><div className="empty-state-icon">🌍</div>No countries found</div></td></tr>
             ) : (
-              filteredCountries.map(country => (
-                <tr key={country.id}>
-                  <td>{country.id}</td>
-                  <td>{country.name}</td>
-                  <td>{country.code}</td>
+              filtered.map(c => (
+                <tr key={c.id}>
+                  <td>{c.id}</td>
+                  <td className="cell-name">{c.name}</td>
+                  <td><span className="cell-badge badge-engineering">{c.code}</span></td>
                   <td>
-                    <div className="table-actions">
-                      <button className="btn btn-secondary btn-sm" onClick={() => openShowModal(country.id)}>View</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(country)}>Edit</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(country.id)}>Delete</button>
+                    <div className="actions-cell">
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleEdit(c)}>Edit</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -185,89 +145,56 @@ export default function CountriesList({ globalSearch }) {
             )}
           </tbody>
         </table>
-
-        <div className="pagination">
-          <div className="pagination-info">
-            Page {pagination.current_page} of {pagination.total_pages || 1} ({pagination.total_count} total)
-          </div>
-          <div className="pagination-controls">
-            <button
-              className="pagination-btn"
-              onClick={() => goToPage(pagination.current_page - 1)}
-              disabled={pagination.current_page <= 1}
-            >
-              Prev
-            </button>
-            <button
-              className="pagination-btn"
-              onClick={() => goToPage(pagination.current_page + 1)}
-              disabled={pagination.current_page >= pagination.total_pages}
-            >
-              Next
-            </button>
-          </div>
-        </div>
       </div>
 
-      {formOpen && (
-        <div className="modal-overlay" role="dialog" aria-label={formMode === "edit" ? "Edit Country" : "Add Country"}>
-          <div className="modal">
-            <div className="modal-header">
-              <h3>{formMode === "edit" ? "Edit Country" : "Add Country"}</h3>
-              <button className="modal-close" onClick={closeFormModal}>x</button>
+      {/* Add/Edit Modal */}
+      {showForm && (
+        <Modal
+          title={editingCountry ? "Edit Country" : "Add Country"}
+          onClose={closeForm}
+          footer={
+            <>
+              <button className="btn btn-secondary" onClick={closeForm}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleFormSubmit}>
+                {editingCountry ? "Update" : "Create"}
+              </button>
+            </>
+          }
+        >
+          {formErrors.length > 0 && (
+            <div style={{ color: "var(--color-danger)", marginBottom: "var(--space-lg)", fontSize: "var(--font-size-sm)" }}>
+              {formErrors.map((err, i) => <div key={i}>{err}</div>)}
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="country-name">Name</label>
-                  <input
-                    id="country-name"
-                    className="form-input"
-                    value={formData.name}
-                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="country-code">Code</label>
-                  <input
-                    id="country-code"
-                    className="form-input"
-                    value={formData.code}
-                    onChange={e => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                    maxLength={3}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={closeFormModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          )}
+          <form onSubmit={handleFormSubmit}>
+            <div className="form-group">
+              <label className="form-label">Name</label>
+              <input className="form-input" name="name" value={formData.name} onChange={handleFormChange} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Code</label>
+              <input className="form-input" name="code" value={formData.code} onChange={handleFormChange} required maxLength={5} />
+            </div>
+          </form>
+        </Modal>
       )}
 
-      {selectedCountry && (
-        <div className="modal-overlay" role="dialog" aria-label="Country Details">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Country Details</h3>
-              <button className="modal-close" onClick={() => setSelectedCountry(null)}>x</button>
-            </div>
-            <div className="modal-body">
-              <p><strong>ID:</strong> {selectedCountry.id}</p>
-              <p><strong>Name:</strong> {selectedCountry.name}</p>
-              <p><strong>Code:</strong> {selectedCountry.code}</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setSelectedCountry(null)}>Close</button>
-            </div>
-          </div>
-        </div>
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <Modal
+          title="Delete Country"
+          onClose={() => setDeleteTarget(null)}
+          footer={
+            <>
+              <button className="btn btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+            </>
+          }
+        >
+          <p className="confirm-text">
+            Are you sure you want to delete <strong>{deleteTarget.name} ({deleteTarget.code})</strong>?
+          </p>
+        </Modal>
       )}
     </div>
   );

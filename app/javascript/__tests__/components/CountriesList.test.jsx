@@ -2,16 +2,14 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import CountriesList from "../../components/Countries/CountriesList";
 import {
+  fetchCountries,
   createCountry,
-  deleteCountry,
-  getCountries,
-  getCountry,
   updateCountry,
-} from "../../api/countries";
+  deleteCountry,
+} from "../../services/api";
 
-jest.mock("../../api/countries", () => ({
-  getCountries: jest.fn(),
-  getCountry: jest.fn(),
+jest.mock("../../services/api", () => ({
+  fetchCountries: jest.fn(),
   createCountry: jest.fn(),
   updateCountry: jest.fn(),
   deleteCountry: jest.fn(),
@@ -20,116 +18,109 @@ jest.mock("../../api/countries", () => ({
 describe("CountriesList", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    window.confirm = jest.fn(() => true);
   });
 
-  it("renders index rows and pagination info", async () => {
-    getCountries.mockResolvedValueOnce({
-      countries: [
-        { id: 1, name: "India", code: "IN" },
-        { id: 2, name: "Japan", code: "JP" },
-      ],
-      pagination: { current_page: 1, per_page: 10, total_count: 2, total_pages: 1 },
-    });
+  it("renders country rows", async () => {
+    fetchCountries.mockResolvedValueOnce([
+      { id: 1, name: "India", code: "IN" },
+      { id: 2, name: "Japan", code: "JP" },
+    ]);
 
     render(<CountriesList globalSearch="" />);
 
     expect(await screen.findByText("India")).toBeInTheDocument();
     expect(screen.getByText("Japan")).toBeInTheDocument();
-    expect(screen.getByText("Page 1 of 1 (2 total)")).toBeInTheDocument();
+    expect(screen.getByText("2 countries")).toBeInTheDocument();
   });
 
-  it("creates a country", async () => {
-    getCountries.mockResolvedValue({
-      countries: [{ id: 1, name: "India", code: "IN" }],
-      pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
-    });
+  it("opens add modal and creates a country", async () => {
+    fetchCountries.mockResolvedValue([
+      { id: 1, name: "India", code: "IN" },
+    ]);
     createCountry.mockResolvedValue({ id: 2, name: "Germany", code: "DE" });
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
 
     fireEvent.click(screen.getByText("+ Add Country"));
-    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Germany" } });
-    fireEvent.change(screen.getByLabelText("Code"), { target: { value: "de" } });
-    fireEvent.click(screen.getByText("Save"));
+
+    expect(screen.getByText("Add Country")).toBeInTheDocument();
+
+    const inputs = screen.getAllByRole("textbox");
+    const nameInput = inputs.find(input => input.getAttribute("name") === "name");
+    const codeInput = inputs.find(input => input.getAttribute("name") === "code");
+    fireEvent.change(nameInput, { target: { name: "name", value: "Germany" } });
+    fireEvent.change(codeInput, { target: { name: "code", value: "DE" } });
+
+    fireEvent.click(screen.getByText("Create"));
 
     await waitFor(() => {
       expect(createCountry).toHaveBeenCalledWith({ name: "Germany", code: "DE" });
     });
   });
 
-  it("shows country details", async () => {
-    getCountries.mockResolvedValueOnce({
-      countries: [{ id: 1, name: "India", code: "IN" }],
-      pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
-    });
-    getCountry.mockResolvedValueOnce({ id: 1, name: "India", code: "IN" });
-
-    render(<CountriesList globalSearch="" />);
-    await screen.findByText("India");
-
-    fireEvent.click(screen.getByText("View"));
-
-    expect(await screen.findByText("Country Details")).toBeInTheDocument();
-    expect(screen.getByText("ID:")).toBeInTheDocument();
-  });
-
-  it("updates a country", async () => {
-    getCountries.mockResolvedValue({
-      countries: [{ id: 1, name: "India", code: "IN" }],
-      pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
-    });
+  it("opens edit modal and updates a country", async () => {
+    fetchCountries.mockResolvedValue([
+      { id: 1, name: "India", code: "IN" },
+    ]);
     updateCountry.mockResolvedValue({ id: 1, name: "Republic of India", code: "IN" });
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
 
     fireEvent.click(screen.getByText("Edit"));
-    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Republic of India" } });
-    fireEvent.click(screen.getByText("Save"));
+
+    expect(screen.getByText("Edit Country")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("India")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByDisplayValue("India"), { target: { name: "name", value: "Republic of India" } });
+    fireEvent.click(screen.getByText("Update"));
 
     await waitFor(() => {
       expect(updateCountry).toHaveBeenCalledWith(1, { name: "Republic of India", code: "IN" });
     });
   });
 
-  it("deletes a country", async () => {
-    getCountries.mockResolvedValue({
-      countries: [{ id: 1, name: "India", code: "IN" }],
-      pagination: { current_page: 1, per_page: 10, total_count: 1, total_pages: 1 },
-    });
-    deleteCountry.mockResolvedValue(true);
+  it("opens delete confirmation and deletes a country", async () => {
+    fetchCountries.mockResolvedValue([
+      { id: 1, name: "India", code: "IN" },
+    ]);
+    deleteCountry.mockResolvedValue({});
 
     render(<CountriesList globalSearch="" />);
     await screen.findByText("India");
 
     fireEvent.click(screen.getByText("Delete"));
 
+    expect(screen.getByText("Delete Country")).toBeInTheDocument();
+    expect(screen.getByText(/Are you sure you want to delete/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByText("Delete").find(btn => btn.closest(".modal-footer")));
+
     await waitFor(() => {
-      expect(window.confirm).toHaveBeenCalled();
       expect(deleteCountry).toHaveBeenCalledWith(1);
     });
   });
 
-  it("moves to next page and refetches data", async () => {
-    getCountries
-      .mockResolvedValueOnce({
-        countries: [{ id: 1, name: "India", code: "IN" }],
-        pagination: { current_page: 1, per_page: 10, total_count: 11, total_pages: 2 },
-      })
-      .mockResolvedValueOnce({
-        countries: [{ id: 11, name: "Japan", code: "JP" }],
-        pagination: { current_page: 2, per_page: 10, total_count: 11, total_pages: 2 },
-      });
+  it("filters countries by global search", async () => {
+    fetchCountries.mockResolvedValueOnce([
+      { id: 1, name: "India", code: "IN" },
+      { id: 2, name: "Japan", code: "JP" },
+    ]);
 
-    render(<CountriesList globalSearch="" />);
-    await screen.findByText("India");
-
-    fireEvent.click(screen.getByText("Next"));
+    render(<CountriesList globalSearch="japan" />);
 
     await waitFor(() => {
-      expect(getCountries).toHaveBeenNthCalledWith(2, { page: 2, perPage: 10 });
+      expect(screen.getByText("Japan")).toBeInTheDocument();
+      expect(screen.queryByText("India")).not.toBeInTheDocument();
     });
+  });
+
+  it("shows empty state when no countries", async () => {
+    fetchCountries.mockResolvedValueOnce([]);
+
+    render(<CountriesList globalSearch="" />);
+
+    expect(await screen.findByText("No countries found")).toBeInTheDocument();
   });
 });

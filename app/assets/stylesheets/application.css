@@ -581,16 +581,6 @@ html, body {
   font-size: var(--font-size-xs);
 }
 
-.table-actions {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-.error-text {
-  color: var(--color-danger);
-  margin-bottom: var(--space-md);
-}
-
 .btn-icon {
   padding: var(--space-sm);
   border: 1px solid var(--color-border);
