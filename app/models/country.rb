@@ -1,4 +1,7 @@
 class Country < ApplicationRecord
+  has_many :departments
+  has_many :employees
+
   validates :name, :code, presence: true
   validates :name, uniqueness: { scope: :code }
 

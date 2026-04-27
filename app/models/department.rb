@@ -1,5 +1,6 @@
 class Department < ApplicationRecord
   belongs_to :country
+  has_many :employees
 
   validates :name, presence: true, uniqueness: { scope: :country_id }
   validates :code, presence: true

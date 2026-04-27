@@ -204,3 +204,14 @@ steps:
 - Created a create and edit form for employee management, which will allow us to create and update the employee.
 - fixed pagination error for jest 
 
+commit 21:
+Prompt:
+- We need to create a employee model along with associations.
+it belongs to country and also to department.and also we need validations
+and we need to have rspec for the same as well
+- all presence true can be put in one line right 
+steps:
+- Created rspec for employee model functionality.
+- Created employee model functionality.
+
+

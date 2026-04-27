@@ -24,4 +24,49 @@ RSpec.describe Employee, type: :model do
     it { is_expected.to have_db_index(:department_id) }
     it { is_expected.to have_db_index(:country_id) }
   end
+
+  describe "associations" do
+    it { is_expected.to belong_to(:country) }
+    it { is_expected.to belong_to(:department) }
+  end
+
+  describe "validations" do
+    it { is_expected.to validate_presence_of(:first_name) }
+    it { is_expected.to validate_presence_of(:last_name) }
+    it { is_expected.to validate_presence_of(:email) }
+    it { is_expected.to validate_presence_of(:job_title) }
+    it { is_expected.to validate_presence_of(:hire_date) }
+    it { is_expected.to validate_presence_of(:salary) }
+
+    it "validates uniqueness of email" do
+      create(:employee)
+      expect(build(:employee, email: Employee.first.email)).to be_invalid
+    end
+
+    it "validates uniqueness of employee_code" do
+      emp = create(:employee, employee_code: "EMP001")
+      expect(build(:employee, employee_code: "EMP001")).to be_invalid
+    end
+
+    it "allows blank employee_code" do
+      expect(build(:employee, employee_code: nil)).to be_valid
+      expect(build(:employee, employee_code: "")).to be_valid
+    end
+
+    it "validates salary is not negative" do
+      expect(build(:employee, salary: -1)).to be_invalid
+    end
+
+    it "validates salary of zero is valid" do
+      expect(build(:employee, salary: 0)).to be_valid
+    end
+
+    it "requires a valid country" do
+      expect(build(:employee, country: nil)).to be_invalid
+    end
+
+    it "requires a valid department" do
+      expect(build(:employee, department: nil)).to be_invalid
+    end
+  end
 end
