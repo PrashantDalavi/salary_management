@@ -54,3 +54,11 @@ Steps:
 - Created a create and edit form for country management, which will allow us to create and update the country.
 - wrote RSpec for country management, for CRUD operations and along with messages.
 
+Commit 7:
+Prompt: 
+- Can you please create a csv file for countries which shall be used to use in bulk csv import functionality..
+this file should have name of the country and country code and save this file in sample files folder.
+Steps:
+- Created a csv file for countries.
+
+
